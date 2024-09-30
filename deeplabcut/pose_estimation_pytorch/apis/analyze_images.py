@@ -203,6 +203,7 @@ def analyze_images(
         )
 
     cfg = auxiliaryfunctions.read_config(config)
+    print({cfg})
     train_frac = cfg["TrainingFraction"][trainingsetindex]
     model_folder = Path(cfg["project_path"]) / auxiliaryfunctions.get_model_folder(
         train_frac,
@@ -523,3 +524,18 @@ def parse_images_and_image_folders(
         image_to_analyze += parse_images_and_image_folders(file)
 
     return image_to_analyze
+
+if __name__ == '__main__':
+
+    output_dict = analyze_images(
+        config='/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/config.yaml',
+        images='/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/videos/fr1_2023_04_22_15_24_store_benchmarking_fabio_image_stack1.png',
+        output_dir='/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch',
+        trainingsetindex=0,
+        snapshot_index=None,
+        detector_snapshot_index=None,
+        modelprefix='resnet_50',
+        device='mps',
+        max_individuals=None,
+        progress_bar=True
+    )
