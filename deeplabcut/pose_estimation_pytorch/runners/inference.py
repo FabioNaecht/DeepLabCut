@@ -116,6 +116,92 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
 
         return results
 
+    @torch.no_grad()
+    def inference_shrunk(self, images: Iterable[str | np.ndarray] | Iterable[tuple[str | np.ndarray, dict[str, Any]]]) -> list[dict[str, np.ndarray]]:
+        """ model inference - deleted all unnecessary code for testing!! """
+        self.model.to(self.device)
+        self.model.eval()
+
+        results = []
+        for data in images:
+            self._prepare_inputs(data)
+            self._process_full_batches()
+            results += self._extract_results()
+
+        return results
+
+    @torch.no_grad()
+    def inference_single_image(self, image: np.ndarray) -> dict[str, np.ndarray]:
+        """ Run inference on a single image """
+        # Move model to device and set it to evaluation mode
+        self.model.to(self.device)
+        self.model.eval()
+
+        # Convert the input image to a tensor and cast it to float
+        input_tensor = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)  # Convert to [1, 3, height, width]
+        input_tensor = input_tensor.to(self.device)
+
+        # Run the model forward pass
+        outputs = self.model(input_tensor)
+        print(f"outputs: {outputs}")
+
+        # Post-process outputs if needed (optional)
+        if self.postprocessor is not None:
+            outputs, _ = self.postprocessor(outputs, {})
+
+        # Convert outputs to numpy format if they need to be returned as np.ndarray
+        predictions = {key: output.cpu().numpy() for key, output in outputs.items()}
+
+        return predictions
+
+    @torch.no_grad()
+    def inference_single_image1(self, image: np.ndarray) -> dict[str, np.ndarray]:
+        """Run inference on a single image."""
+        # Move model to device and set it to evaluation mode
+        self.model.to(self.device)
+        self.model.eval()
+
+        # Convert the input image to a tensor and format it
+        input_tensor = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)
+
+        # Run the model forward pass
+        outputs = self.model(input_tensor)
+        print("Shape of outputs:", outputs.shape)  # Inspect shape for further debugging
+
+        # Construct predictions dictionary to match postprocessor's expected format
+        self._predictions = [
+            {
+                "bodypart": {
+                    "x": outputs[0, i, 0].item(),  # Assuming outputs is [1, num_parts, 2]
+                    "y": outputs[0, i, 1].item()
+                }
+            } for i in range(outputs.shape[1])  # Iterating over parts
+        ]
+        self._image_batch_sizes = [1]
+        self._contexts = [{}]  # Placeholder for context
+
+        # Post-process predictions
+        results = []
+        if self.postprocessor is not None:
+            while (
+                    len(self._image_batch_sizes) > 0
+                    and len(self._predictions) >= self._image_batch_sizes[0]
+            ):
+                num_predictions = self._image_batch_sizes[0]
+                image_predictions = self._predictions[:num_predictions]
+                context = self._contexts[0]
+
+                # Pass through postprocessor
+                image_predictions, _ = self.postprocessor(image_predictions, context)
+
+                # Clean up as in _extract_results
+                self._contexts = self._contexts[1:]
+                self._image_batch_sizes = self._image_batch_sizes[1:]
+                self._predictions = self._predictions[num_predictions:]
+                results.append(image_predictions)
+
+        return results[0] if results else {}
+
     def _prepare_inputs(
         self, data: str | np.ndarray | tuple[str | np.ndarray, dict],
     ) -> None:

@@ -156,6 +156,13 @@ def video_inference_shrunk(video_path: str | Path, pose_runner: InferenceRunner)
 
     return predictions
 
+def inference_single_img(image: np.array, pose_runner: InferenceRunner) -> dict[str, np.ndarray]:
+    """Runs inference on a video - removed all unnecessary code for testing"""
+
+    predictions = pose_runner.inference_single_image(images=tqdm(image))
+
+    return predictions
+
 
 def analyze_videos(
     config: str,

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from deeplabcut.pose_estimation_pytorch.apis.analyze_videos import video_inference, video_inference_shrunk
+from deeplabcut.pose_estimation_pytorch.apis.analyze_videos import video_inference, video_inference_shrunk, inference_single_img
 from deeplabcut.pose_estimation_pytorch.config import read_config_as_dict
 from deeplabcut.pose_estimation_pytorch.task import Task
 from deeplabcut.pose_estimation_pytorch.apis.utils import get_inference_runners
@@ -47,8 +47,31 @@ print(f"Pose runner: {pose_runner}")
 #     with_identity=False,
 # )
 
-predictions = video_inference_shrunk(
-    video_path=video_path,
-    pose_runner=pose_runner,
-)
-print(f"Predictions: {predictions}")
+# predictions = video_inference_shrunk(
+#     video_path=video_path,
+#     pose_runner=pose_runner,
+# )
+
+# predictions = inference_single_img( pose_runner=pose_runner)
+
+# load images from video using iio.imread
+import imageio as iio
+
+video_reader = iio.get_reader(video_path)
+frame_number_total = iio.get_reader(video_path).count_frames()
+print(f"Total number of frames: {frame_number_total}")
+
+for frame_number in range(10):
+    print(f"# {frame_number}")
+
+    # Read the current frame
+    image = video_reader.get_data(frame_number)
+    print(f"image shape: {image.shape}")
+    print(f"image type: {type(image)}")
+
+    # Run inference on the current frame
+    predictions = pose_runner.inference_single_image1(image=image)
+    print(f"Predictions: {predictions}")
+
+# Close the video reader after usage
+video_reader.close()
