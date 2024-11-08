@@ -143,7 +143,11 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
 
         # Run the model forward pass
         outputs = self.model(input_tensor)
-        print(f"outputs: {outputs}")
+        print(f"output type: {type(outputs)}")  # Inspect type for further debugging
+        # print(f"outputs: {outputs}")  # Inspect outputs for further debugging
+        # puts out {'bodypart': {'heatmap': tensor( and 'locref': tensor(
+        print(f"tensorshape of outputs heatmap: {outputs['bodypart']['heatmap'].shape}")  # Inspect shape for further debugging
+        print(f"tensorshape of outputs locref: {outputs['bodypart']['locref'].shape}")  # Inspect shape for further debugging
 
         # Post-process outputs if needed (optional)
         if self.postprocessor is not None:

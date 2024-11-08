@@ -70,7 +70,7 @@ for frame_number in range(10):
     print(f"image type: {type(image)}")
 
     # Run inference on the current frame
-    predictions = pose_runner.inference_single_image1(image=image)
+    predictions = pose_runner.inference_single_image(image=image)
     print(f"Predictions: {predictions}")
 
 # Close the video reader after usage
