@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from deeplabcut.pose_estimation_pytorch.apis.analyze_videos import video_inference
+from deeplabcut.pose_estimation_pytorch.apis.analyze_videos import video_inference, video_inference_shrunk
 from deeplabcut.pose_estimation_pytorch.config import read_config_as_dict
 from deeplabcut.pose_estimation_pytorch.task import Task
 from deeplabcut.pose_estimation_pytorch.apis.utils import get_inference_runners
@@ -39,11 +39,16 @@ pose_runner, detector_runner = get_inference_runners(
 )
 print(f"Pose runner: {pose_runner}")
 
-predictions = video_inference(
+# predictions = video_inference(
+#     video_path=video_path,
+#     task=pose_task,
+#     pose_runner=pose_runner,
+#     detector_runner=detector_runner,
+#     with_identity=False,
+# )
+
+predictions = video_inference_shrunk(
     video_path=video_path,
-    task=pose_task,
     pose_runner=pose_runner,
-    detector_runner=detector_runner,
-    with_identity=False,
 )
 print(f"Predictions: {predictions}")

@@ -148,6 +148,14 @@ def video_inference(
 
     return predictions
 
+def video_inference_shrunk(video_path: str | Path, pose_runner: InferenceRunner) -> list[dict[str, np.ndarray]]:
+    """Runs inference on a video - removed all unnecessary code for testing"""
+
+    video = VideoIterator(str(video_path))
+    predictions = pose_runner.inference(images=tqdm(video))
+
+    return predictions
+
 
 def analyze_videos(
     config: str,
