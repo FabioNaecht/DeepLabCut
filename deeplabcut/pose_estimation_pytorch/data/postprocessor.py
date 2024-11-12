@@ -198,6 +198,8 @@ class ComposePostprocessor(Postprocessor):
     def __call__(self, predictions: Any, context: Context) -> tuple[Any, Context]:
         for postprocessor in self.components:
             predictions, context = postprocessor(predictions, context)
+            print(f"predictions: {predictions}")
+            print(f"context: {context}")
         return predictions, context
 
 
@@ -211,6 +213,8 @@ class ConcatenateOutputs(Postprocessor):
         create_empty_outputs: bool = False,
     ):
         self.keys_to_concatenate = keys_to_concatenate
+        print(f"keys_to_concatenate: {self.keys_to_concatenate}")
+
         self.empty_shapes = empty_shapes
         self.create_empty_outputs = create_empty_outputs
 

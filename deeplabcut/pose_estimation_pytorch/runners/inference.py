@@ -138,21 +138,23 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
         self.model.eval()
 
         # Convert the input image to a tensor and cast it to float
-        input_tensor = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)  # Convert to [1, 3, height, width]
+        input_tensor = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)  # Convert to [1, 3, height, width] => torch.Size([1, 3, 200, 200])
+        print(f"input_tensor shape: {input_tensor.shape}")  # Inspect shape for further debugging
         input_tensor = input_tensor.to(self.device)
 
         # Run the model forward pass
         outputs = self.model(input_tensor)
         print(f"output type: {type(outputs)}")  # Inspect type for further debugging
         # print(f"outputs: {outputs}")  # Inspect outputs for further debugging
-        # puts out {'bodypart': {'heatmap': tensor( and 'locref': tensor(
-        print(f"tensorshape of outputs heatmap: {outputs['bodypart']['heatmap'].shape}")  # Inspect shape for further debugging
-        print(f"tensorshape of outputs locref: {outputs['bodypart']['locref'].shape}")  # Inspect shape for further debugging
+        print(f"tensorshape of outputs heatmap: {outputs['bodypart']['heatmap'].shape}")  # torch.Size([1, 1, 27, 27])
+        print(f"tensorshape of outputs locref: {outputs['bodypart']['locref'].shape}")  # torch.Size([1, 2, 27, 27])
 
         # Post-process outputs if needed (optional)
+        print(f"used postprocessor: {self.postprocessor}")  # Inspect postprocessor for further debugging
         if self.postprocessor is not None:
             outputs, _ = self.postprocessor(outputs, {})
 
+        print(f"outputs after postprocessing: {outputs}")  # Inspect outputs for further debugging
         # Convert outputs to numpy format if they need to be returned as np.ndarray
         predictions = {key: output.cpu().numpy() for key, output in outputs.items()}
 

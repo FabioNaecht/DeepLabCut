@@ -66,8 +66,8 @@ for frame_number in range(10):
 
     # Read the current frame
     image = video_reader.get_data(frame_number)
-    print(f"image shape: {image.shape}")
-    print(f"image type: {type(image)}")
+    # print(f"image shape: {image.shape}")
+    # print(f"image type: {type(image)}")
 
     # Run inference on the current frame
     predictions = pose_runner.inference_single_image(image=image)
