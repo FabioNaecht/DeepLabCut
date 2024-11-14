@@ -113,6 +113,8 @@ def video_inference(
         "resolution": (vid_w, vid_h),
     }
 
+    print(f"task: {task}")
+
     if task == Task.TOP_DOWN:
         # Get bounding boxes for context
         if detector_runner is None:
@@ -123,9 +125,12 @@ def video_inference(
         video.set_context(bbox_predictions)
 
     print(f"Running pose prediction with batch size {pose_runner.batch_size}")
+    print(f"with_identity: {with_identity}")
+
     predictions = pose_runner.inference(images=tqdm(video))
 
     if with_identity:
+        print("Assigning identities to bodyparts")
         bodypart_predictions = assign_identity(
             [p["bodyparts"] for p in predictions],
             [p["identity_scores"] for p in predictions],

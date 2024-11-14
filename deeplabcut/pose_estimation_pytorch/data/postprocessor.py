@@ -236,8 +236,14 @@ class ConcatenateOutputs(Postprocessor):
             return outputs, context
 
         outputs = {}
+        print(f"predictions: {predictions}")
+        print(f"context: {context}")
         for output_name, head_key in self.keys_to_concatenate.items():
+            print(f"keys_to_concatenate: {self.keys_to_concatenate}")
+            print(f"self.keys_to_concatenate.items(): {self.keys_to_concatenate.items()}")
             head_name, val_name = head_key
+            print(f"head_name: {head_name}")
+            print(f"val_name: {val_name}")
             outputs[output_name] = np.concatenate(
                 [p[head_name][val_name] for p in predictions]
             )
