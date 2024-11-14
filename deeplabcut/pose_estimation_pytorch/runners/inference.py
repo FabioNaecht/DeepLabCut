@@ -8,6 +8,7 @@
 #
 # Licensed under GNU Lesser General Public License v3.0
 #
+
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
@@ -18,6 +19,7 @@ from typing import Any, Generic, Iterable
 import numpy as np
 import torch
 import torch.nn as nn
+from time import perf_counter_ns
 
 from deeplabcut.pose_estimation_pytorch.data.postprocessor import Postprocessor
 from deeplabcut.pose_estimation_pytorch.data.preprocessor import Preprocessor
@@ -129,6 +131,36 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
             results += self._extract_results()
 
         return results
+
+    @torch.no_grad()
+    def inference_single_image2(self, image: np.ndarray) -> dict[str, np.ndarray]:
+        """ Run inference on a single image """
+        # Move model to device and set it to evaluation mode
+        # self.device = "cpu"
+        self.model.to(self.device)
+        self.model.eval()
+        print('\n')
+
+        # Convert the input image to a tensor and cast it to float
+        start_timer_process = perf_counter_ns() / 1_000_000
+        input_tensor = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0)  # Convert to [1, 3, height, width] => torch.Size([1, 3, 200, 200])
+        input_tensor = input_tensor.to(self.device)
+        end_timer_process = perf_counter_ns() / 1_000_000
+        print(f"Time to process image: {end_timer_process - start_timer_process} ms")
+
+        # Run the model forward pass
+        start_timer_inference = perf_counter_ns() / 1_000_000
+        outputs = self.model.forward(input_tensor) # forward method not necessary...
+        end_timer_inference = perf_counter_ns() / 1_000_000
+        print(f"Time to run inference: {end_timer_inference - start_timer_inference} ms")
+
+        start_timer_get_predictions = perf_counter_ns() / 1_000_000
+        predictions = self.model.get_predictions(outputs)
+        end_timer_get_predictions = perf_counter_ns() / 1_000_000
+        print(f"Time to get predictions: {end_timer_get_predictions - start_timer_get_predictions} ms")
+        print('\n')
+
+        return predictions
 
     @torch.no_grad()
     def inference_single_image(self, image: np.ndarray) -> dict[str, np.ndarray]:
@@ -293,6 +325,8 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
         else:
             inputs = torch.as_tensor(inputs)
 
+        print(f"inputs shape (prepare inputs): {inputs.shape}") # torch.Size([1, 3, 200, 200])
+
         self._contexts.append(context)
         self._image_batch_sizes.append(len(inputs))
 
@@ -304,9 +338,11 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
             self._batch = inputs
         else:
             self._batch = torch.cat([self._batch, inputs], dim=0)
+            print(f"batch shape: {self._batch.shape}")  # batch shape: torch.Size([k, 3, 200, 200])
 
     def _process_full_batches(self) -> None:
         """Processes prepared inputs in batches of the desired batch size."""
+        print(f" batch size: {self.batch_size}")
         while self._batch is not None and len(self._batch) >= self.batch_size:
             self._process_batch()
 
@@ -319,12 +355,14 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
         ):
             num_predictions = self._image_batch_sizes[0]
             image_predictions = self._predictions[:num_predictions]
+            print(f"image_predictions0 (_extract_results): {image_predictions}")
             context = self._contexts[0]
 
             if self.postprocessor is not None:
                 # TODO: Should we return context?
                 # TODO: typing update - the post-processor can remove a dict level
                 image_predictions, _ = self.postprocessor(image_predictions, context)
+                print(f"image_predictions1 (_extract_results): {image_predictions}")
 
             self._contexts = self._contexts[1:]
             self._image_batch_sizes = self._image_batch_sizes[1:]
@@ -339,7 +377,9 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
         called, otherwise this method will raise an error.
         """
         batch = self._batch[:self.batch_size]
+        print(f"batch shape (_process batch): {batch.shape}")
         self._predictions += self.predict(batch)
+        print(f"predictions (_process batch): {self._predictions}")
 
         # remove processed inputs from batch
         if len(self._batch) <= self.batch_size:

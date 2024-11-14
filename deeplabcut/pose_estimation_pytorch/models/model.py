@@ -73,15 +73,21 @@ class PoseModel(nn.Module):
         Returns:
             Outputs of head groups
         """
+        # print(f"x (forward) shape: {x.shape}") # torch.Size([16, 3, 200, 200])
         if x.dim() == 3:
             x = x[None, :]
         features = self.backbone(x)
+        # print(f"features (forward) shape: {features.shape}") #  torch.Size([16, 2048, 13, 13])
         if self.neck:
+            print(f"neck (forward): {self.neck}")
             features = self.neck(features)
 
         outputs = {}
         for head_name, head in self.heads.items():
+            # print(f"head_name (forward): {head_name}") # bodypart
             outputs[head_name] = head(features)
+
+        # print(f"outputs (forward): {outputs}")
         return outputs
 
     def get_loss(
@@ -116,6 +122,7 @@ class PoseModel(nn.Module):
         Returns:
             targets: dict of the targets for each model head group
         """
+        print(f"targets (get_target): {labels}") # not called
         return {
             name: head.target_generator(self._strides[name], outputs[name], labels)
             for name, head in self.heads.items()
@@ -130,6 +137,8 @@ class PoseModel(nn.Module):
         Returns:
             A dictionary containing the predictions of each head group
         """
+        # print(f" outputs dict (get_predictions): {outputs}") # not called
+        # print(f" get_predictions() returns: { {name: head.predictor(self._strides[name], outputs[name]) for name, head in self.heads.items()} }")
         return {
             name: head.predictor(self._strides[name], outputs[name])
             for name, head in self.heads.items()
@@ -153,6 +162,7 @@ class PoseModel(nn.Module):
         Returns:
             the built pose model
         """
+        print(f"building PoseModel (build)")
         cfg["backbone"]["pretrained"] = pretrained_backbone
         backbone = BACKBONES.build(dict(cfg["backbone"]))
 
@@ -254,6 +264,7 @@ def filter_state_dict(state_dict: dict, module: str) -> dict[str, torch.Tensor]:
         # filtered = {"conv.weight": t1}
         model.backbone.load_state_dict(filtered)
     """
+    print(f"_filter_state_dict()")
     return {
         ".".join(k.split(".")[1:]): v  # remove 'backbone.' from the keys
         for k, v in state_dict.items()
@@ -263,6 +274,7 @@ def filter_state_dict(state_dict: dict, module: str) -> dict[str, torch.Tensor]:
 
 def _model_stride(backbone_stride: int | float, head_stride: int | float) -> float:
     """Computes the model stride from a backbone and a head"""
+    print(f"_model_stride()")
     if head_stride > 0:
         return backbone_stride / head_stride
 

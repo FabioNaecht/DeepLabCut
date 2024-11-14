@@ -47,13 +47,13 @@ print(f"Pose runner: {pose_runner}")
 # import numpy as np
 #
 # # Set video path and prediction results
-predictions = video_inference(
-    video_path=video_path,
-    task=pose_task,
-    pose_runner=pose_runner,
-    detector_runner=detector_runner,
-    with_identity=False,
-)
+# predictions = video_inference(
+#     video_path=video_path,
+#     task=pose_task,
+#     pose_runner=pose_runner,
+#     detector_runner=detector_runner,
+#     with_identity=False,
+# )
 #
 # print(f"Predictions: {predictions}")
 #
@@ -96,24 +96,24 @@ predictions = video_inference(
 
 
 
-# # load images from video using iio.imread
-# import imageio as iio
-#
-# video_reader = iio.get_reader(video_path)
-# frame_number_total = iio.get_reader(video_path).count_frames()
-# print(f"Total number of frames: {frame_number_total}")
-#
-# for frame_number in range(10):
-#     print(f"# {frame_number}")
-#
-#     # Read the current frame
-#     image = video_reader.get_data(frame_number)
-#     # print(f"image shape: {image.shape}")
-#     # print(f"image type: {type(image)}")
-#
-#     # Run inference on the current frame
-#     predictions = pose_runner.inference_single_image(image=image)
-#     print(f"Predictions: {predictions}")
-#
-# # Close the video reader after usage
-# video_reader.close()
+# load images from video using iio.imread
+import imageio as iio
+
+video_reader = iio.get_reader(video_path)
+frame_number_total = iio.get_reader(video_path).count_frames()
+print(f"Total number of frames: {frame_number_total}")
+
+for frame_number in range(10):
+    print(f"# {frame_number}")
+
+    # Read the current frame
+    image = video_reader.get_data(frame_number)
+    # print(f"image shape: {image.shape}")
+    # print(f"image type: {type(image)}")
+
+    # Run inference on the current frame
+    predictions = pose_runner.inference_single_image2(image=image)
+    print(f"Predictions: {predictions}")
+
+# Close the video reader after usage
+video_reader.close()
