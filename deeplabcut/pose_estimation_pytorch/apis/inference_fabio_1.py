@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import torch
 import cv2
 import numpy as np
+from deeplabcut.pose_estimation_pytorch.runners.inference import InferenceRunner
 
 from deeplabcut.pose_estimation_pytorch.apis.analyze_videos import video_inference, video_inference_shrunk, inference_single_img
 from deeplabcut.pose_estimation_pytorch.config import read_config_as_dict
@@ -30,7 +31,8 @@ print(f"With identity: {with_identity}")
 pose_task = Task(model_cfg["method"])
 print(f"Pose task: {pose_task}")
 
-pose_runner, detector_runner = get_inference_runners(
+# get_inference_runners() from utils.py where it calls build_inference_runner() from inference.py
+pose_runner, _ = get_inference_runners(
     model_config=model_cfg,
     snapshot_path=snapshot_path,
     max_individuals=max_num_animals,
@@ -56,44 +58,6 @@ print(f"Pose runner: {pose_runner}")
 # )
 #
 # print(f"Predictions: {predictions}")
-#
-# # Open the video
-# cap = cv2.VideoCapture(video_path)
-#
-# # Loop through each frame and overlay predictions
-# frame_idx = 0
-# while cap.isOpened():
-#     ret, frame = cap.read()
-#     if not ret:
-#         break
-#
-#     # Get prediction for the current frame
-#     if frame_idx < len(predictions):
-#         prediction = predictions[frame_idx]['bodyparts']
-#
-#         # Draw each landmark with likelihood on the frame
-#         for bodypart in prediction[0]:  # Assuming only 1 body part in the array for each frame
-#             x, y, likelihood = bodypart
-#             # Draw the point
-#             cv2.circle(frame, (int(x), int(y)), radius=1, color=(0, 255, 0), thickness=-1)
-#             # Annotate the likelihood
-#             label = f"{likelihood:.2f}"
-#             cv2.putText(frame, label, (int(x) + 10, int(y) - 10),
-#                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-#
-#     # Show the frame with overlay
-#     cv2.imshow("Frame with Predictions", frame)
-#
-#     # Exit when 'q' is pressed
-#     if cv2.waitKey(30) & 0xFF == ord('q'):
-#         break
-#
-#     frame_idx += 1
-#
-# # Release the video capture and close windows
-# cap.release()
-# cv2.destroyAllWindows()
-
 
 
 # load images from video using iio.imread
@@ -106,14 +70,8 @@ print(f"Total number of frames: {frame_number_total}")
 for frame_number in range(10):
     print(f"# {frame_number}")
 
-    # Read the current frame
     image = video_reader.get_data(frame_number)
-    # print(f"image shape: {image.shape}")
-    # print(f"image type: {type(image)}")
-
-    # Run inference on the current frame
     predictions = pose_runner.inference_single_image2(image=image)
     print(f"Predictions: {predictions}")
 
-# Close the video reader after usage
 video_reader.close()

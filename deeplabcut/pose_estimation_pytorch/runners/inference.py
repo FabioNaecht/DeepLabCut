@@ -136,7 +136,7 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
     def inference_single_image2(self, image: np.ndarray) -> dict[str, np.ndarray]:
         """ Run inference on a single image """
         # Move model to device and set it to evaluation mode
-        # self.device = "cpu"
+        # self.device = "mps"
         self.model.to(self.device)
         self.model.eval()
         print('\n')
@@ -154,6 +154,7 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
         end_timer_inference = perf_counter_ns() / 1_000_000
         print(f"Time to run inference: {end_timer_inference - start_timer_inference} ms")
 
+        # Get predictions from the model outputs
         start_timer_get_predictions = perf_counter_ns() / 1_000_000
         predictions = self.model.get_predictions(outputs)
         end_timer_get_predictions = perf_counter_ns() / 1_000_000
@@ -413,6 +414,7 @@ class PoseInferenceRunner(InferenceRunner[PoseModel]):
                 }
             ]
         """
+        print("PoseInferenceRunner(InferenceRunner[PoseModel])")
         outputs = self.model(inputs.to(self.device))
         raw_predictions = self.model.get_predictions(outputs)
         predictions = [
@@ -496,6 +498,7 @@ def build_inference_runner(
     Returns:
         the inference runner
     """
+    print("build_inference_runner")
     kwargs = dict(
         model=model,
         device=device,
