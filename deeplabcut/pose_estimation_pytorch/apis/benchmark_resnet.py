@@ -1,16 +1,17 @@
 import imageio as iio
 import torch
 import torchvision.transforms as transforms
-from torchvision.models import resnet50
+from torchvision.models import mobilenet_v3_small, resnet50
 import time
 
 # Load pre-trained ResNet-50 model
-model = resnet50(pretrained=True)
+# model = resnet50(pretrained=True)
+model = mobilenet_v3_small(pretrained=True)
 model.eval()  # Set to evaluation mode
 
 # Set up the device
 # device mps (macbook here!)
-device = "mps"
+device = "cuda"
 # device = "cpu"
 model.to(device)
 
@@ -24,8 +25,8 @@ transform = transforms.Compose([
 ])
 
 # Initialize video reader
-video_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/test-videos/2023_04_22_15_00_tracking_trial_control_fabio_image_stack1.avi"
-video_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/test-videos/2023_04_22_15_00_tracking_trial_control_fabio_image_stack1.avi"
+# video_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/test-videos/2023_04_22_15_00_tracking_trial_control_fabio_image_stack1.avi"
+video_path = "/home/zimadmin/Documents/20230424_nn200_tip-sam/videos/2023_04_22_15_00_tracking_trial_control_fabio_image_stack1.avi"
 video_reader = iio.get_reader(video_path)
 frame_number_total = video_reader.count_frames()
 print(f"Total number of frames: {frame_number_total}")
@@ -42,10 +43,11 @@ for frame_number in range(10):
     input_tensor = input_tensor.to(device)
 
     # Measure prediction time
-    start_time = time.time()
+    
     with torch.no_grad():
+        start_time = time.time()
         output = model(input_tensor)
-    end_time = time.time()
+        end_time = time.time()
 
     # Calculate time taken in milliseconds
     execution_time_ms = (end_time - start_time) * 1000
