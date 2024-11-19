@@ -14,6 +14,7 @@ import argparse
 import copy
 import logging
 from pathlib import Path
+import torch
 
 import albumentations as A
 from torch.utils.data import DataLoader
@@ -40,6 +41,7 @@ from deeplabcut.pose_estimation_pytorch.runners.logger import (
     setup_file_logging,
 )
 from deeplabcut.pose_estimation_pytorch.task import Task
+from deeplabcut.pose_estimation_pytorch.models.backbones import ResNet
 
 
 def train(
@@ -344,6 +346,7 @@ def train_network(
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--config-path", type=str)
     parser.add_argument("--shuffle", type=int, default=1)
@@ -351,12 +354,18 @@ if __name__ == "__main__":
     parser.add_argument("--modelprefix", type=str, default="")
     args = parser.parse_args()
 
-    cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/config.yaml"
+    backbone = ResNet(pretrained=True)
+    x = torch.randn(1, 3, 256, 256)  # Example input tensor
+    output = backbone(x)
+    print(output.shape)  # Expected: [1, 2048, H_out, W_out]
+
+    # cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/config.yaml"
+    cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_mobile_BS1/config.yaml"
 
     train_network(
         config=cfg_path,
-        epochs=100,
-        batch_size=32,
+        epochs=200,
+        batch_size=1,
         # shuffle=args.shuffle,
         # trainingsetindex=args.train_ind,
         # modelprefix=args.modelprefix,
