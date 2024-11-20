@@ -20,50 +20,96 @@ from deeplabcut.pose_estimation_pytorch.models.backbones.base import (
 )
 
 
+# @BACKBONES.register_module
+# class ResNet(BaseBackbone):
+#     """MobileNet backbone"""
+
+#     def __init__(
+#         self,
+#         model_name: str = "mobilenetv3_small_100",
+#         output_stride: int = 32,
+#         pretrained: bool = False,
+#         input_channels: int = 3,  # Allow grayscale input
+#         expected_output_channels: int = 2048,
+#         **kwargs,
+#     ) -> None:
+#         """Initialize the MobileNet backbone"""
+#         print(f"################# model name: {model_name} #################")
+#         super().__init__(stride=output_stride, **kwargs)
+#         self.model = create_model(
+#             model_name,
+#             pretrained=pretrained,
+#             features_only=True,  # Enable feature extraction
+#             out_indices=(-1,),  # Extract only the last feature map
+#         )
+#         if input_channels == 1:
+#             self.model.conv_stem = nn.Conv2d(
+#                 in_channels=1,
+#                 out_channels=self.model.conv_stem.out_channels,
+#                 kernel_size=self.model.conv_stem.kernel_size,
+#                 stride=self.model.conv_stem.stride,
+#                 padding=self.model.conv_stem.padding,
+#                 bias=False,
+#             )
+#         self.output_conv = nn.Conv2d(
+#             in_channels=self.model.feature_info[-1]['num_chs'],
+#             out_channels=expected_output_channels,  # Match head input
+#             kernel_size=1,
+#             stride=1,
+#         )
+
+#     def forward(self, x: torch.Tensor) -> torch.Tensor:
+#         features = self.model(x)  # features_only=True returns a list of feature maps
+#         last_feature_map = features[-1]  # Extract the last feature map
+#         print(f"Last feature map shape: {last_feature_map.shape}")  # Debugging
+#         out = self.output_conv(last_feature_map)  # Adjust channels to expected output
+#         return out
+
+
 @BACKBONES.register_module
 class ResNet(BaseBackbone):
-    """MobileNet backbone"""
+    """MobileNet backbone."""
 
     def __init__(
         self,
         model_name: str = "mobilenetv3_small_100",
         output_stride: int = 32,
         pretrained: bool = False,
-        input_channels: int = 3,  # Allow grayscale input
-        expected_output_channels: int = 2048,
         **kwargs,
     ) -> None:
-        """Initialize the MobileNet backbone"""
-        print(f"################# model name: {model_name} #################")
+        """Initialize the MobileNet backbone.
+
+        Args:
+            model_name: Name of the MobileNet model to use (e.g., 'mobilenetv3_small_100').
+            output_stride: Output stride of the network, 32, 16, or 8.
+            pretrained: If True, initializes with ImageNet pretrained weights.
+            kwargs: BaseBackbone kwargs.
+        """
         super().__init__(stride=output_stride, **kwargs)
+        
+        # Create MobileNet model with feature extraction
         self.model = create_model(
             model_name,
             pretrained=pretrained,
-            features_only=True,  # Enable feature extraction
-            out_indices=(-1,),  # Extract only the last feature map
+            features_only=True,  # Extract intermediate feature maps
+            out_indices=(-1,),  # Use only the last feature map
         )
-        if input_channels == 1:
-            self.model.conv_stem = nn.Conv2d(
-                in_channels=1,
-                out_channels=self.model.conv_stem.out_channels,
-                kernel_size=self.model.conv_stem.kernel_size,
-                stride=self.model.conv_stem.stride,
-                padding=self.model.conv_stem.padding,
-                bias=False,
-            )
-        self.output_conv = nn.Conv2d(
-            in_channels=self.model.feature_info[-1]['num_chs'],
-            out_channels=expected_output_channels,  # Match head input
-            kernel_size=1,
-            stride=1,
-        )
+        # Ensure the FC layer is bypassed or not used
+        self.model.global_pool = nn.Identity()
+        self.model.classifier = nn.Identity()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        features = self.model(x)  # features_only=True returns a list of feature maps
-        last_feature_map = features[-1]  # Extract the last feature map
-        print(f"Last feature map shape: {last_feature_map.shape}")  # Debugging
-        out = self.output_conv(last_feature_map)  # Adjust channels to expected output
-        return out
+        """Forward pass through the MobileNet backbone.
+
+        Args:
+            x: Input tensor.
+
+        Returns:
+            torch.Tensor: Output tensor (last feature map).
+        """
+        features = self.model(x)  # Get all feature maps
+        last_feature_map = features[-1]  # Use only the last feature map
+        return last_feature_map
 
 @BACKBONES.register_module
 class ResNet1(BaseBackbone):

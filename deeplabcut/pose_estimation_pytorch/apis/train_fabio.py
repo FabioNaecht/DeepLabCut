@@ -360,15 +360,15 @@ if __name__ == "__main__":
     print(output.shape)  # Expected: [1, 2048, H_out, W_out]
 
     # cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/config.yaml"
-    cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_mobile_BS1/config.yaml"
+    # cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_mobile_BS1/config.yaml"
     # cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_1/config.yaml"
-    # cfg_path = "/home/zimadmin/Documents/pose_estimation_models/pytorch/20230424_nn200_tip-sam/config.yaml"
+    cfg_path = "/home/zimadmin/Documents/pose_estimation_models/pytorch/20230424_nn200_tip-sam_mobile//config.yaml"
 
     train_network(
         config=cfg_path,
         epochs=200,
-        batch_size=1,
-        device='mps'
+        batch_size=32,
+        device='cuda'
         
         # shuffle=args.shuffle,
         # trainingsetindex=args.train_ind,
