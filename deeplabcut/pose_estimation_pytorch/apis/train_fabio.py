@@ -360,7 +360,8 @@ if __name__ == "__main__":
     print(output.shape)  # Expected: [1, 2048, H_out, W_out]
 
     # cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/config.yaml"
-    cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_mobile_BS1/config.yaml"
+    # cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_mobile_BS1/config.yaml"
+    cfg_path = "/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/sam_pytorch_copy/20230424_nn200_tip-sam_1/config.yaml"
 
     train_network(
         config=cfg_path,

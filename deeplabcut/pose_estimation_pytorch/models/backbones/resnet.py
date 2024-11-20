@@ -20,62 +20,62 @@ from deeplabcut.pose_estimation_pytorch.models.backbones.base import (
 )
 
 
+# @BACKBONES.register_module
+# class ResNet(BaseBackbone):
+#     """ResNet backbone.
+#
+#     This class represents a typical ResNet backbone for pose estimation.
+#
+#     Attributes:
+#         model: the ResNet model
+#     """
+#
+#     def __init__(
+#         self,
+#         # model_name: str = "resnet50",
+#         model_name: str = "mobilenetv3_small_100",
+#         output_stride: int = 32,
+#         pretrained: bool = False,
+#         drop_path_rate: float = 0.0,
+#         drop_block_rate: float = 0.0,
+#         **kwargs,
+#     ) -> None:
+#         """Initialize the ResNet backbone.
+#
+#         Args:
+#             model_name: Name of the ResNet model to use, e.g., 'resnet50', 'resnet101'
+#             output_stride: Output stride of the network, 32, 16, or 8.
+#             pretrained: If True, initializes with ImageNet pretrained weights.
+#             drop_path_rate: Stochastic depth drop-path rate
+#             drop_block_rate: Drop block rate
+#             kwargs: BaseBackbone kwargs
+#         """
+#         print(f"################# model name: {model_name} #################")
+#
+#         super().__init__(stride=output_stride, **kwargs)
+#         self.model = create_model(
+#             model_name,
+#             pretrained=pretrained,
+#             features_only=True,  # Enable feature extraction
+#             out_indices=(-1,),  # Extract only the last feature map
+#         )
+#
+#         self.output_conv = nn.Conv2d(
+#             in_channels=self.model.feature_info[-1]['num_chs'],  # Dynamically fetch the output channels
+#             out_channels=2048,  # Match expected head input channels
+#             kernel_size=1,
+#             stride=1,
+#         )
+#
+#
+#     def forward(self, x: torch.Tensor) -> torch.Tensor:
+#         features = self.model(x)  # features_only=True returns a list of feature maps
+#         last_feature_map = features[-1]  # Extract the last feature map
+#         out = self.output_conv(last_feature_map)  # Adjust channels to 2048
+#         return out
+
 @BACKBONES.register_module
 class ResNet(BaseBackbone):
-    """ResNet backbone.
-
-    This class represents a typical ResNet backbone for pose estimation.
-
-    Attributes:
-        model: the ResNet model
-    """
-
-    def __init__(
-        self,
-        # model_name: str = "resnet50",
-        model_name: str = "mobilenetv3_small_100",
-        output_stride: int = 32,
-        pretrained: bool = False,
-        drop_path_rate: float = 0.0,
-        drop_block_rate: float = 0.0,
-        **kwargs,
-    ) -> None:
-        """Initialize the ResNet backbone.
-
-        Args:
-            model_name: Name of the ResNet model to use, e.g., 'resnet50', 'resnet101'
-            output_stride: Output stride of the network, 32, 16, or 8.
-            pretrained: If True, initializes with ImageNet pretrained weights.
-            drop_path_rate: Stochastic depth drop-path rate
-            drop_block_rate: Drop block rate
-            kwargs: BaseBackbone kwargs
-        """
-        print(f"################# model name: {model_name} #################")
-
-        super().__init__(stride=output_stride, **kwargs)
-        self.model = create_model(
-            model_name,
-            pretrained=pretrained,
-            features_only=True,  # Enable feature extraction
-            out_indices=(-1,),  # Extract only the last feature map
-        )
-
-        self.output_conv = nn.Conv2d(
-            in_channels=self.model.feature_info[-1]['num_chs'],  # Dynamically fetch the output channels
-            out_channels=2048,  # Match expected head input channels
-            kernel_size=1,
-            stride=1,
-        )
-
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        features = self.model(x)  # features_only=True returns a list of feature maps
-        last_feature_map = features[-1]  # Extract the last feature map
-        out = self.output_conv(last_feature_map)  # Adjust channels to 2048
-        return out
-
-# @BACKBONES.register_module
-class ResNetOriginal(BaseBackbone):
     """ResNet backbone.
 
     This class represents a typical ResNet backbone for pose estimation.
