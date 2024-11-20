@@ -22,13 +22,7 @@ from deeplabcut.pose_estimation_pytorch.models.backbones.base import (
 
 @BACKBONES.register_module
 class ResNet(BaseBackbone):
-    """ResNet backbone.
-
-    This class represents a typical ResNet backbone for pose estimation.
-
-    Attributes:
-        model: the ResNet model
-    """
+    """MobileNet backbone"""
 
     def __init__(
         self,
