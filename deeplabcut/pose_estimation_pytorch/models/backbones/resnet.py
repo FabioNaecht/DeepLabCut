@@ -29,9 +29,11 @@ class ResNet(BaseBackbone):
         model_name: str = "mobilenetv3_small_100",
         output_stride: int = 32,
         pretrained: bool = False,
+        input_channels: int = 3,  # Allow grayscale input
+        expected_output_channels: int = 2048,
         **kwargs,
     ) -> None:
-        """Initialize the ResNet backbone"""
+        """Initialize the MobileNet backbone"""
         print(f"################# model name: {model_name} #################")
         super().__init__(stride=output_stride, **kwargs)
         self.model = create_model(
@@ -40,9 +42,18 @@ class ResNet(BaseBackbone):
             features_only=True,  # Enable feature extraction
             out_indices=(-1,),  # Extract only the last feature map
         )
+        if input_channels == 1:
+            self.model.conv_stem = nn.Conv2d(
+                in_channels=1,
+                out_channels=self.model.conv_stem.out_channels,
+                kernel_size=self.model.conv_stem.kernel_size,
+                stride=self.model.conv_stem.stride,
+                padding=self.model.conv_stem.padding,
+                bias=False,
+            )
         self.output_conv = nn.Conv2d(
-            in_channels=self.model.feature_info[-1]['num_chs'],  # Dynamically fetch the output channels
-            out_channels=2048,  # Match expected head input channels
+            in_channels=self.model.feature_info[-1]['num_chs'],
+            out_channels=expected_output_channels,  # Match head input
             kernel_size=1,
             stride=1,
         )
@@ -50,7 +61,8 @@ class ResNet(BaseBackbone):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         features = self.model(x)  # features_only=True returns a list of feature maps
         last_feature_map = features[-1]  # Extract the last feature map
-        out = self.output_conv(last_feature_map)  # Adjust channels to 2048
+        print(f"Last feature map shape: {last_feature_map.shape}")  # Debugging
+        out = self.output_conv(last_feature_map)  # Adjust channels to expected output
         return out
 
 @BACKBONES.register_module
@@ -185,37 +197,37 @@ class DLCRNet(ResNet):
 
         return torch.cat((bank_1_s16, bank_2_s16, out), dim=1)
 
-    @BACKBONES.register_module
-    class MobileNetV3Small(BaseBackbone):
-        """MobileNetV3Small backbone.
+@BACKBONES.register_module
+class MobileNetV3Small(BaseBackbone):
+    """MobileNetV3Small backbone.
 
-        Attributes:
-            model: the MobileNetV3Small model.
+    Attributes:
+        model: the MobileNetV3Small model.
+    """
+
+    def __init__(
+            self,
+            model_name: str = "mobilenetv3_small_100",
+            output_stride: int = 16,
+            pretrained: bool = True,
+            drop_path_rate: bool = True,
+            drop_block_rate: bool = True,
+            **kwargs,
+    ) -> None:
+        """Initialize the MobileNetV3Small backbone.
+
+        Args:
+            model_name: Name of the MobileNet model to use.
+            output_stride: Output stride of the network, typically 32.
+            pretrained: If True, initializes with ImageNet pretrained weights.
+            kwargs: BaseBackbone kwargs.
         """
+        super().__init__(stride=output_stride, **kwargs)
+        self.model = timm.create_model(
+            model_name, pretrained=pretrained, drop_path_rate=drop_path_rate, drop_block_rate=drop_block_rate, features_only=True
+        )
 
-        def __init__(
-                self,
-                model_name: str = "mobilenetv3_small_100",
-                output_stride: int = 16,
-                pretrained: bool = True,
-                drop_path_rate: bool = True,
-                drop_block_rate: bool = True,
-                **kwargs,
-        ) -> None:
-            """Initialize the MobileNetV3Small backbone.
-
-            Args:
-                model_name: Name of the MobileNet model to use.
-                output_stride: Output stride of the network, typically 32.
-                pretrained: If True, initializes with ImageNet pretrained weights.
-                kwargs: BaseBackbone kwargs.
-            """
-            super().__init__(stride=output_stride, **kwargs)
-            self.model = timm.create_model(
-                model_name, pretrained=pretrained, drop_path_rate=drop_path_rate, drop_block_rate=drop_block_rate, features_only=True
-            )
-
-        def forward(self, x: torch.Tensor) -> torch.Tensor:
-            """Forward pass through the MobileNetV3Small backbone."""
-            return self.model(x)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the MobileNetV3Small backbone."""
+        return self.model(x)
 
