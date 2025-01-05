@@ -68,6 +68,9 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
         self._image_batch_sizes: list[int] = []
         self._predictions: list = []
 
+        self.device: str = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Device: {self.device}")
+
     @abstractmethod
     def predict(self, inputs: torch.Tensor) -> list[dict[str, dict[str, np.ndarray]]]:
         """Makes predictions from a model input and output
@@ -122,7 +125,7 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
     def inference_single_image2(self, image: np.ndarray) -> dict[str, np.ndarray]:
         """ Run inference on a single image """
         # Move model to device and set it to evaluation mode
-        self.device = "cuda" # -> 2.7 + 0.14 + 0.3 ms (3.15 ms in total) on GPU; on CPU -> 21 + 0.07 + 0.24 (21.31 ms in total)
+        # self.device = "cuda" # -> 2.7 + 0.14 + 0.3 ms (3.15 ms in total) on GPU; on CPU -> 21 + 0.07 + 0.24 (21.31 ms in total)
         self.model.to(self.device)
         self.model.eval()
         print('\n')
