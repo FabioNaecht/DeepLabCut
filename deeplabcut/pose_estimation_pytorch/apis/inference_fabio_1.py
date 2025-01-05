@@ -15,7 +15,8 @@ pytorch_config_path = train_dir / "pytorch_config.yaml"
 snapshot_path = train_dir / "snapshot-200.pt"
 
 # video and inference parameters
-video_path = Path("/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/test-videos/2023_04_22_15_00_tracking_trial_control_fabio_image_stack1.avi")
+# video_path = Path("/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/20230424_nn200_tip-sam/test-videos/2023_04_22_15_00_tracking_trial_control_fabio_image_stack1.avi")
+video_path = Path("/Users/fabionaecht/Documents/PhD/dlc/tensorflow_pytorch/refined/evaluation_custom/200_frames_2023_04_22_15_00_tracking_trial_control_fabio_image_stack5-1.avi")
 max_num_animals = 1
 batch_size = 16
 
@@ -32,7 +33,7 @@ pose_task = Task(model_cfg["method"])
 print(f"Pose task: {pose_task}")
 
 # get_inference_runners() from utils.py where it calls build_inference_runner() from inference.py
-pose_runner, _ = get_inference_runners(
+pose_runner, detector_runner = get_inference_runners(
     model_config=model_cfg,
     snapshot_path=snapshot_path,
     max_individuals=max_num_animals,
@@ -48,30 +49,29 @@ print(f"Pose runner: {pose_runner}")
 # import cv2
 # import numpy as np
 #
-# # Set video path and prediction results
-# predictions = video_inference(
-#     video_path=video_path,
-#     task=pose_task,
-#     pose_runner=pose_runner,
-#     detector_runner=detector_runner,
-#     with_identity=False,
-# )
+# Set video path and prediction results
+predictions = video_inference(
+    video_path=video_path,
+    task=pose_task,
+    pose_runner=pose_runner,
+    detector_runner=detector_runner,
+    with_identity=False,
+)
+
+print(f"Predictions: {predictions}")
+
+
+# import imageio as iio
 #
-# print(f"Predictions: {predictions}")
-
-
-# load images from video using iio.imread
-import imageio as iio
-
-video_reader = iio.get_reader(video_path)
-frame_number_total = iio.get_reader(video_path).count_frames()
-print(f"Total number of frames: {frame_number_total}")
-
-for frame_number in range(10):
-    print(f"# {frame_number}")
-
-    image = video_reader.get_data(frame_number)
-    predictions = pose_runner.inference_single_image2(image=image)
-    print(f"Predictions: {predictions}")
-
-video_reader.close()
+# video_reader = iio.get_reader(video_path)
+# frame_number_total = iio.get_reader(video_path).count_frames()
+# print(f"Total number of frames: {frame_number_total}")
+#
+# for frame_number in range(10):
+#     print(f"# {frame_number}")
+#
+#     image = video_reader.get_data(frame_number)
+#     predictions = pose_runner.inference_single_image2(image=image)
+#     print(f"Predictions: {predictions}")
+#
+# video_reader.close()

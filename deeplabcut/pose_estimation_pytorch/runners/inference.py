@@ -184,6 +184,53 @@ class InferenceRunner(Runner, Generic[ModelType], metaclass=ABCMeta):
             self._batch = torch.cat([self._batch, inputs], dim=0)
             print(f"batch shape: {self._batch.shape}")  # batch shape: torch.Size([k, 3, 200, 200])
 
+    def _process_full_batches(self) -> None:
+        """Processes prepared inputs in batches of the desired batch size."""
+        while self._batch is not None and len(self._batch) >= self.batch_size:
+            self._process_batch()
+
+    def _extract_results(self) -> list:
+        """Obtains results that were obtained from processing a batch."""
+        results = []
+        while (
+            len(self._image_batch_sizes) > 0
+            and len(self._predictions) >= self._image_batch_sizes[0]
+        ):
+            num_predictions = self._image_batch_sizes[0]
+            image_predictions = self._predictions[:num_predictions]
+            context = self._contexts[0]
+
+            if self.postprocessor is not None:
+                # TODO: Should we return context?
+                # TODO: typing update - the post-processor can remove a dict level
+                image_predictions, _ = self.postprocessor(image_predictions, context)
+
+            self._contexts = self._contexts[1:]
+            self._image_batch_sizes = self._image_batch_sizes[1:]
+            self._predictions = self._predictions[num_predictions:]
+            results.append(image_predictions)
+
+        return results
+
+    def _process_batch(self) -> None:
+        """
+        Processes a batch. There must be inputs waiting to be processed before this is
+        called, otherwise this method will raise an error.
+        """
+        batch = self._batch[:self.batch_size]
+        self._predictions += self.predict(batch)
+
+        # remove processed inputs from batch
+        if len(self._batch) <= self.batch_size:
+            self._batch = None
+        else:
+            self._batch = self._batch[self.batch_size:]
+
+    def _inputs_waiting_for_processing(self) -> bool:
+        """Returns: Whether there are inputs which have not yet been processed"""
+        return self._batch is not None and len(self._batch) > 0
+
+
 class PoseInferenceRunner(InferenceRunner[PoseModel]):
     """Runner for pose estimation inference"""
 
