@@ -61,17 +61,17 @@ predictions = video_inference(
 print(f"Predictions: {predictions}")
 
 
-# import imageio as iio
-#
-# video_reader = iio.get_reader(video_path)
-# frame_number_total = iio.get_reader(video_path).count_frames()
-# print(f"Total number of frames: {frame_number_total}")
-#
-# for frame_number in range(10):
-#     print(f"# {frame_number}")
-#
-#     image = video_reader.get_data(frame_number)
-#     predictions = pose_runner.inference_single_image2(image=image)
-#     print(f"Predictions: {predictions}")
-#
-# video_reader.close()
+import imageio as iio
+
+video_reader = iio.get_reader(video_path)
+frame_number_total = iio.get_reader(video_path).count_frames()
+print(f"Total number of frames: {frame_number_total}")
+
+for frame_number in range(10):
+    print(f"# {frame_number}")
+
+    image = video_reader.get_data(frame_number)
+    predictions = pose_runner.inference_single_image2(image=image)
+    print(f"Predictions: {predictions}")
+
+video_reader.close()
